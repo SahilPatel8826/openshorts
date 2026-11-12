@@ -54,17 +54,10 @@ RUN if [ "$GPU" = "1" ]; then LOCK=requirements-gpu.lock; else LOCK=requirements
 # (gpu_render.py). Only GPU builds compile it; the CPU image ships without it
 # and renders through ffmpeg. It links the same Debian FFmpeg libraries the
 # final stage installs, so both stages must stay on the same Debian release.
-FROM rust:1-slim-trixie@sha256:7eab7ce19273ce785e0ca7578bdf7bc1fcbae621775a8197379a04c9f6e03cd5 AS osrender
+FROM python:3.11-slim@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79 AS osrender
 ARG GPU=0
 COPY osrender /src/osrender
-RUN mkdir -p /out && if [ "$GPU" = "1" ]; then \
-      apt-get update && apt-get install -y --no-install-recommends \
-        pkg-config clang libclang-dev libavcodec-dev libavformat-dev libavutil-dev \
-        libavfilter-dev libavdevice-dev libswscale-dev libswresample-dev \
-      && rm -rf /var/lib/apt/lists/* \
-      && cd /src/osrender && cargo build --release --locked \
-      && cp target/release/osrender /out/; \
-    fi
+RUN mkdir -p /out
 
 # Final stage
 FROM python:3.11-slim@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79
